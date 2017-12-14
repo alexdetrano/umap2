@@ -65,12 +65,17 @@ class Umap2App(object):
             dev_name = phy_arr[1]
             s = Serial(dev_name, 115200, parity=PARITY_NONE, timeout=2)
             # fd = Facedancer(s)
-            phy = Max342xPhy(self, s)
+            phy = Max342xPhy(self, s, phy_type)
             return phy
         elif phy_type == 'gadgetfs':
             self.logger.debug('Physical interface is GadgetFs')
             phy = GadgetFsPhy(self)
             return phy
+        elif phy_type == 'rd':
+            self.logger.debug('Physical interface is raspdancer')
+            phy = Max342xPhy(self, serial_port=None, phy_type='rd')
+            return phy
+
         raise Exception('Phy type not supported: %s' % phy_type)
 
     def load_device(self, dev_name, phy):

@@ -8,6 +8,7 @@ import struct
 from binascii import hexlify
 from umap2.phy.iphy import PhyInterface
 from umap2.phy.facedancer.facedancer import FacedancerCommand, Facedancer
+from umap2.phy.raspdancer.raspdancer import Raspdancer
 
 
 class Regs:
@@ -67,10 +68,17 @@ class Max342xPhy(PhyInterface):
     interrupt_level = 0x08
     full_duplex = 0x10
 
-    def __init__(self, app, serial_port):
+    def __init__(self, app, serial_port=None, phy_type='fd'):
         super(Max342xPhy, self).__init__(app, 'Max342xPhy')
         self.app_num = 0x40
-        self.device = Facedancer(serial_port)
+        print('phy_type: {}'.format(phy_type))
+        print('phy_type len: {}'.format(len(phy_type)))
+        print('phy_type[0]: {}'.format(phy_type[0]))
+        print('phy_type[1]: {}'.format(phy_type[1]))
+        print('phy_type len: {}'.format(len(phy_type)))
+        print('phy_type len: {}'.format(len(phy_type)))
+        print('serial_port: {}'.format(serial_port))
+        self.device = self.set_device(phy_type, serial_port)
         self.init_commands()
         self.info('Initialized commands')
         self.reply_buffer = ''
@@ -80,6 +88,19 @@ class Max342xPhy(PhyInterface):
         self.info('MAX F/W revision: %s' % rev)
         # first, we need to read
         self.write_register(Regs.pin_control, self.full_duplex | self.interrupt_level)
+
+    def set_device(self, phy_type='fd', serial_port=None):
+        '''
+        Instantiate correct device based on hardware
+        '''
+        if phy_type == 'fd':
+            return Facedancer(serial_port)
+        elif phy_type == 'rd':
+            return Raspdancer()
+        else:
+            # shouldn't ever hit this since load_phy checks the phy string
+	    self.error('Unknown phy_type {}'.format(phy_type))
+	    raise
 
     def enable(self):
         for i in range(3):
